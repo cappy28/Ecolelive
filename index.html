@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ÉcoleDirecte+</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d0f14; --surface: #13161d; --surface2: #1a1e28; --surface3: #222736;
+    --border: rgba(255,255,255,0.06); --border2: rgba(255,255,255,0.1);
+    --text: #f0f2f7; --text2: #8890a8; --text3: #555e78;
+    --accent: #4f6ef7; --accent2: #7b5ef8; --green: #3ecf8e;
+    --red: #f75f5f; --orange: #f7a94f; --purple: #a855f7;
+    --radius: 16px; --radius-sm: 10px;
+  }
+  html, body { height: 100%; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+
+  /* ── LOGIN SCREEN ─────────────────────────────────── */
+  #login-screen {
+    display: flex; align-items: center; justify-content: center;
+    height: 100vh;
+    background: radial-gradient(ellipse at 30% 20%, rgba(79,110,247,0.12) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 80%, rgba(123,94,248,0.08) 0%, transparent 60%);
+  }
+  .login-box {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 40px 36px; width: 360px;
+  }
+  .login-logo {
+    width: 52px; height: 52px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 16px; display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; color: white;
+    margin-bottom: 20px;
+  }
+  .login-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .login-sub { font-size: 13px; color: var(--text2); margin-bottom: 28px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+  .field input {
+    width: 100%; padding: 11px 14px; background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px;
+    outline: none; transition: border-color 0.2s;
+  }
+  .field input:focus { border-color: var(--accent); }
+  .btn-login {
+    width: 100%; padding: 12px; margin-top: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; border-radius: 10px;
+    color: white; font-family: 'Syne', sans-serif; font-weight: 600; font-size: 14px;
+    cursor: pointer; transition: opacity 0.2s;
+  }
+  .btn-login:hover { opacity: 0.88; }
+  .btn-login:disabled { opacity: 0.5; cursor: wait; }
+  .login-err {
+    margin-top: 12px; padding: 10px 14px;
+    background: rgba(247,95,95,0.12); border: 1px solid rgba(247,95,95,0.25);
+    border-radius: 8px; font-size: 13px; color: var(--red);
+    display: none;
+  }
+  .login-note {
+    margin-top: 16px; font-size: 11px; color: var(--text3); text-align: center; line-height: 1.5;
+  }
+
+  /* ── APP ─────────────────────────────────────────── */
+  #app { display: none; height: 100vh; }
+  body.logged-in #login-screen { display: none; }
+  body.logged-in #app { display: flex; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 72px; background: var(--surface); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; align-items: center;
+    padding: 20px 0; gap: 6px; flex-shrink: 0; z-index: 10;
+  }
+  .logo {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 14px; color: white;
+    margin-bottom: 16px; flex-shrink: 0;
+  }
+  .nav-sep { width: 32px; height: 1px; background: var(--border); margin: 6px 0; }
+  .nav-item {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; color: var(--text3); position: relative;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text2); }
+  .nav-item.active { background: rgba(79,110,247,0.15); color: var(--accent); }
+  .nav-item svg { width: 20px; height: 20px; }
+  .nav-badge { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--red); border: 2px solid var(--surface); }
+  .sidebar-bottom { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .avatar-sm {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, #f75f5f, #f7a94f);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 12px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .avatar-sm:hover { transform: scale(1.05); }
+
+  /* CONTENT */
+  .main { display: flex; flex: 1; overflow: hidden; }
+  .content { flex: 1; overflow-y: auto; padding: 28px 28px 28px 24px; scrollbar-width: thin; scrollbar-color: var(--surface3) transparent; }
+
+  /* HEADER */
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+  .header-left h1 { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; }
+  .header-left p { font-size: 13px; color: var(--text2); margin-top: 2px; }
+
+  /* CARD */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .card-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text2); margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+  .card-title a { font-family: 'DM Sans', sans-serif; text-transform: none; letter-spacing: 0; font-size: 12px; color: var(--accent); cursor: pointer; font-weight: 400; }
+
+  /* GRID */
+  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; margin-bottom: 18px; }
+  .grid-2-1 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; margin-bottom: 18px; }
+
+  /* STAT CARD */
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; position: relative; overflow: hidden; }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .stat-card.blue::before { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+  .stat-card.green::before { background: var(--green); }
+  .stat-card.orange::before { background: var(--orange); }
+  .stat-card.red::before { background: var(--red); }
+  .stat-icon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+  .stat-icon.blue { background: rgba(79,110,247,0.15); color: var(--accent); }
+  .stat-icon.green { background: rgba(62,207,142,0.15); color: var(--green); }
+  .stat-icon.orange { background: rgba(247,169,79,0.15); color: var(--orange); }
+  .stat-icon.red { background: rgba(247,95,95,0.15); color: var(--red); }
+  .stat-icon svg { width: 17px; height: 17px; }
+  .stat-value { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+  .stat-label { font-size: 12px; color: var(--text2); }
+  .stat-delta { font-size: 11px; margin-top: 6px; display: flex; align-items: center; gap: 3px; }
+  .delta-up { color: var(--green); } .delta-down { color: var(--red); }
+
+  /* GRADES */
+  .grades-list { display: flex; flex-direction: column; gap: 8px; }
+  .grade-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--surface2); border-radius: var(--radius-sm); cursor: pointer; transition: background 0.15s; }
+  .grade-row:hover { background: var(--surface3); }
+  .grade-subject-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .grade-subject { flex: 1; font-size: 13px; font-weight: 500; }
+  .grade-date { font-size: 11px; color: var(--text3); width: 70px; }
+  .grade-type { font-size: 11px; color: var(--text2); background: var(--surface3); padding: 2px 8px; border-radius: 20px; width: 80px; text-align: center; }
+  .grade-val { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; width: 60px; text-align: right; }
+  .grade-val.good { color: var(--green); } .grade-val.ok { color: var(--orange); } .grade-val.bad { color: var(--red); }
+
+  /* SCHEDULE */
+  .schedule-header { display: flex; gap: 6px; margin-bottom: 12px; }
+  .day-btn { flex: 1; padding: 6px; border-radius: 9px; background: var(--surface2); border: 1px solid transparent; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .day-btn.active { background: rgba(79,110,247,0.15); border-color: rgba(79,110,247,0.3); }
+  .day-btn span:first-child { display: block; font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
+  .day-btn span:last-child { display: block; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--text2); margin-top: 1px; }
+  .day-btn.active span:last-child { color: var(--accent); }
+  .lesson { display: flex; gap: 12px; padding: 11px 14px; background: var(--surface2); border-radius: var(--radius-sm); border-left: 3px solid transparent; margin-bottom: 6px; }
+  .lesson-time { font-size: 11px; color: var(--text3); width: 42px; flex-shrink: 0; padding-top: 1px; }
+  .lesson-body { flex: 1; }
+  .lesson-subject { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+  .lesson-meta { font-size: 11px; color: var(--text2); display: flex; gap: 10px; }
+  .lesson-room { color: var(--text3); }
+  .badge-cancelled { font-size: 10px; background: rgba(247,95,95,0.15); color: var(--red); padding: 1px 7px; border-radius: 20px; margin-left: 6px; }
+
+  /* HOMEWORK */
+  .hw-list { display: flex; flex-direction: column; gap: 8px; }
+  .hw-item { display: flex; align-items: flex-start; gap: 12px; padding: 11px 14px; background: var(--surface2); border-radius: var(--radius-sm); cursor: pointer; transition: background 0.15s; }
+  .hw-item:hover { background: var(--surface3); }
+  .hw-check { width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--border2); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .hw-check.done { background: var(--green); border-color: var(--green); }
+  .hw-check svg { width: 11px; height: 11px; color: white; opacity: 0; transition: opacity 0.2s; }
+  .hw-check.done svg { opacity: 1; }
+  .hw-body { flex: 1; }
+  .hw-subject { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+  .hw-desc { font-size: 13px; color: var(--text); line-height: 1.4; }
+  .hw-due { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+  .hw-due.urgent { color: var(--orange); }
+
+  /* MESSAGES */
+  .msg-list { display: flex; flex-direction: column; gap: 4px; }
+  .msg-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer; transition: background 0.15s; }
+  .msg-item:hover { background: var(--surface2); }
+  .msg-item.unread { background: rgba(79,110,247,0.06); }
+  .msg-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+  .msg-body { flex: 1; min-width: 0; }
+  .msg-from { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+  .msg-item.unread .msg-from::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .msg-preview { font-size: 12px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+  .msg-date { font-size: 11px; color: var(--text3); flex-shrink: 0; }
+
+  /* ABSENCE */
+  .absence-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--surface2); border-radius: var(--radius-sm); margin-bottom: 8px; border-left: 3px solid var(--orange); }
+  .absence-status { font-size: 11px; padding: 3px 10px; border-radius: 20px; }
+  .status-justified { background: rgba(62,207,142,0.15); color: var(--green); }
+  .status-pending { background: rgba(247,169,79,0.15); color: var(--orange); }
+
+  /* AVG */
+  .avg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .avg-item { background: var(--surface2); border-radius: var(--radius-sm); padding: 12px 14px; cursor: pointer; }
+  .avg-subject { font-size: 12px; color: var(--text2); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .avg-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .avg-score { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; }
+  .avg-bar { height: 3px; background: var(--surface3); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+  .avg-bar-fill { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
+
+  /* LOADING */
+  .loading { display: flex; align-items: center; justify-content: center; padding: 40px; gap: 10px; color: var(--text2); font-size: 14px; }
+  .spinner { width: 20px; height: 20px; border: 2px solid var(--surface3); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* EMPTY */
+  .empty { padding: 32px; text-align: center; color: var(--text3); font-size: 13px; }
+
+  /* PAGES */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 4px; }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-up { animation: fadeUp 0.35s ease both; }
+
+  [data-tip] { position: relative; }
+  [data-tip]:hover::after { content: attr(data-tip); position: absolute; left: 100%; top: 50%; transform: translateY(-50%); margin-left: 10px; white-space: nowrap; background: var(--surface3); border: 1px solid var(--border2); color: var(--text); font-size: 12px; padding: 5px 10px; border-radius: 8px; pointer-events: none; z-index: 100; font-family: 'DM Sans', sans-serif; }
+
+  .bulletin-avg { font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .tabs { display: flex; gap: 2px; background: var(--surface2); border-radius: 10px; padding: 3px; margin-bottom: 16px; }
+  .tab { flex: 1; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; text-align: center; cursor: pointer; color: var(--text2); transition: all 0.2s; }
+  .tab.active { background: var(--surface3); color: var(--text); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ LOGIN ══════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">É+</div>
+    <div class="login-title">ÉcoleDirecte+</div>
+    <div class="login-sub">Connectez-vous avec vos identifiants EcoleDirecte</div>
+
+    <div class="field">
+      <label>Identifiant</label>
+      <input type="text" id="inp-user" placeholder="Votre identifiant" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Mot de passe</label>
+      <input type="password" id="inp-pass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+
+    <button class="btn-login" id="btn-login" onclick="doLogin()">Se connecter</button>
+    <div class="login-err" id="login-err"></div>
+    <div class="login-note">🔒 Vos identifiants transitent uniquement par votre proxy local (localhost:3000).<br>Aucune donnée n'est envoyée ailleurs.</div>
+  </div>
+</div>
+
+<!-- ══════════════ APP ══════════════ -->
+<div id="app">
+  <nav class="sidebar">
+    <div class="logo">É+</div>
+    <div class="nav-item active" data-page="dashboard" data-tip="Tableau de bord" onclick="switchPage('dashboard',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    </div>
+    <div class="nav-item" data-page="notes" data-tip="Notes" onclick="switchPage('notes',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    </div>
+    <div class="nav-item" data-page="emploi" data-tip="Emploi du temps" onclick="switchPage('emploi',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    </div>
+    <div class="nav-item" data-page="devoirs" data-tip="Devoirs" onclick="switchPage('devoirs',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-item" data-page="messages" data-tip="Messagerie" onclick="switchPage('messages',this)">
+      <div class="nav-badge" id="msg-badge" style="display:none"></div>
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    </div>
+    <div class="nav-item" data-page="absences" data-tip="Absences" onclick="switchPage('absences',this)">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="nav-item" data-tip="Déconnexion" onclick="logout()">
+        <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      </div>
+      <div class="avatar-sm" id="user-avatar">?</div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div id="page-dashboard" class="page active">
+        <div class="header">
+          <div class="header-left">
+            <h1 id="welcome-msg">Bonjour 👋</h1>
+            <p id="welcome-sub">Chargement…</p>
+          </div>
+        </div>
+        <div class="grid-4" id="stats-grid">
+          <div class="stat-card blue fade-up" style="animation-delay:0.05s">
+            <div class="stat-icon blue"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+            <div class="stat-value" id="stat-moyenne">—</div>
+            <div class="stat-label">Moyenne générale</div>
+          </div>
+          <div class="stat-card green fade-up" style="animation-delay:0.1s">
+            <div class="stat-icon green"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg></div>
+            <div class="stat-value" id="stat-devoirs">—</div>
+            <div class="stat-label">Devoirs à rendre</div>
+          </div>
+          <div class="stat-card orange fade-up" style="animation-delay:0.15s">
+            <div class="stat-icon orange"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+            <div class="stat-value" id="stat-absences">—</div>
+            <div class="stat-label">Absences ce trimestre</div>
+          </div>
+          <div class="stat-card red fade-up" style="animation-delay:0.2s">
+            <div class="stat-icon red"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+            <div class="stat-value" id="stat-messages">—</div>
+            <div class="stat-label">Messages non lus</div>
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-title">Dernières notes <a onclick="switchPage('notes',document.querySelector('[data-page=notes]'))">Voir tout →</a></div>
+            <div class="grades-list" id="dash-notes"><div class="loading"><div class="spinner"></div> Chargement…</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Aujourd'hui <a onclick="switchPage('emploi',document.querySelector('[data-page=emploi]'))">Voir →</a></div>
+            <div id="dash-emploi"><div class="loading"><div class="spinner"></div></div></div>
+          </div>
+        </div>
+        <div class="grid-2-1">
+          <div class="card">
+            <div class="card-title">Devoirs <a onclick="switchPage('devoirs',document.querySelector('[data-page=devoirs]'))">Voir tout →</a></div>
+            <div class="hw-list" id="dash-devoirs"><div class="loading"><div class="spinner"></div></div></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Messages <a onclick="switchPage('messages',document.querySelector('[data-page=messages]'))">Voir tout →</a></div>
+            <div class="msg-list" id="dash-messages"><div class="loading"><div class="spinner"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTES -->
+      <div id="page-notes" class="page">
+        <div class="header"><div class="header-left"><h1>Notes & Bulletins</h1><p id="notes-sub">Chargement…</p></div></div>
+        <div id="notes-content"><div class="loading"><div class="spinner"></div> Chargement des notes…</div></div>
+      </div>
+
+      <!-- EMPLOI -->
+      <div id="page-emploi" class="page">
+        <div class="header"><div class="header-left"><h1>Emploi du temps</h1><p id="emploi-sub">Semaine en cours</p></div></div>
+        <div class="card" id="emploi-content"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+
+      <!-- DEVOIRS -->
+      <div id="page-devoirs" class="page">
+        <div class="header"><div class="header-left"><h1>Travail à faire</h1><p id="devoirs-sub">Chargement…</p></div></div>
+        <div id="devoirs-content"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+
+      <!-- MESSAGES -->
+      <div id="page-messages" class="page">
+        <div class="header"><div class="header-left"><h1>Messagerie</h1><p id="messages-sub">Chargement…</p></div></div>
+        <div class="card msg-list" id="messages-content"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+
+      <!-- ABSENCES -->
+      <div id="page-absences" class="page">
+        <div class="header"><div class="header-left"><h1>Absences & Retards</h1><p id="absences-sub">Chargement…</p></div></div>
+        <div id="absences-content"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:3000/api';
+let STATE = { token: null, eleve: null, data: {} };
+
+// ── UTILS ────────────────────────────────────────────────────────────────────
+
+function qs(id) { return document.getElementById(id); }
+
+function gradeClass(v) {
+  const n = parseFloat(v);
+  if (isNaN(n)) return '';
+  if (n >= 14) return 'good';
+  if (n >= 10) return 'ok';
+  return 'bad';
+}
+
+function initials(nom, prenom) {
+  return ((prenom||'?')[0] + (nom||'?')[0]).toUpperCase();
+}
+
+function formatDate(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit' });
+}
+
+function subjectColor(lib) {
+  const colors = {
+    math: '#4f6ef7', 'français': '#f75f5f', histoire: '#3ecf8e',
+    physique: '#f7a94f', anglais: '#a855f7', svt: '#f7d84f',
+    espagnol: '#f75fa0', philosophie: '#5ff7e0', eps: '#5ff77a',
+    informatique: '#7af7f7',
+  };
+  const k = (lib||'').toLowerCase();
+  for (const [key, c] of Object.entries(colors)) {
+    if (k.includes(key)) return c;
+  }
+  return '#' + Math.floor(Math.abs(Math.sin(lib.length * 7) * 16777215)).toString(16).padStart(6,'0');
+}
+
+function today() {
+  return new Date().toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+}
+
+// ── LOGIN ────────────────────────────────────────────────────────────────────
+
+async function doLogin() {
+  const btn = qs('btn-login');
+  const err = qs('login-err');
+  const user = qs('inp-user').value.trim();
+  const pass = qs('inp-pass').value;
+
+  if (!user || !pass) {
+    err.textContent = 'Veuillez remplir tous les champs.';
+    err.style.display = 'block'; return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Connexion…'; err.style.display = 'none';
+
+  try {
+    const res = await fetch(`${API}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifiant: user, motdepasse: pass })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
+
+    STATE.token = data.token;
+    STATE.eleve = data.eleve;
+
+    // UI
+    document.body.classList.add('logged-in');
+    qs('welcome-msg').textContent = `Bonjour, ${data.eleve.prenom} 👋`;
+    qs('welcome-sub').textContent = `${today()} · ${data.eleve.classe}`;
+    qs('user-avatar').textContent = initials(data.eleve.nom, data.eleve.prenom);
+
+    // Charger les données
+    loadAll();
+
+  } catch (e) {
+    err.textContent = e.message;
+    err.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Se connecter';
+  }
+}
+
+// Enter key on password
+document.addEventListener('DOMContentLoaded', () => {
+  qs('inp-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  qs('inp-user').addEventListener('keydown', e => { if (e.key === 'Enter') qs('inp-pass').focus(); });
+});
+
+function logout() {
+  STATE = { token: null, eleve: null, data: {} };
+  document.body.classList.remove('logged-in');
+  qs('inp-pass').value = '';
+  document.querySelector('.btn-login').disabled = false;
+  document.querySelector('.btn-login').textContent = 'Se connecter';
+}
+
+// ── LOAD ALL ─────────────────────────────────────────────────────────────────
+
+async function loadAll() {
+  const id = STATE.eleve.id;
+  const t = STATE.token;
+
+  const [notes, emploi, devoirs, messages, absences] = await Promise.allSettled([
+    fetch(`${API}/notes/${id}?token=${t}`).then(r => r.json()),
+    fetch(`${API}/emploi/${id}?token=${t}`).then(r => r.json()),
+    fetch(`${API}/devoirs/${id}?token=${t}`).then(r => r.json()),
+    fetch(`${API}/messages/${id}?token=${t}`).then(r => r.json()),
+    fetch(`${API}/absences/${id}?token=${t}`).then(r => r.json()),
+  ]);
+
+  if (notes.status === 'fulfilled' && !notes.value.error) {
+    STATE.data.notes = notes.value;
+    renderNotes(notes.value);
+    renderDashNotes(notes.value);
+  }
+  if (emploi.status === 'fulfilled' && !emploi.value.error) {
+    STATE.data.emploi = emploi.value;
+    renderEmploi(emploi.value);
+    renderDashEmploi(emploi.value);
+  }
+  if (devoirs.status === 'fulfilled' && !devoirs.value.error) {
+    STATE.data.devoirs = devoirs.value;
+    renderDevoirs(devoirs.value);
+    renderDashDevoirs(devoirs.value);
+  }
+  if (messages.status === 'fulfilled' && !messages.value.error) {
+    STATE.data.messages = messages.value;
+    renderMessages(messages.value);
+    renderDashMessages(messages.value);
+  }
+  if (absences.status === 'fulfilled' && !absences.value.error) {
+    STATE.data.absences = absences.value;
+    renderAbsences(absences.value);
+  }
+}
+
+// ── RENDER NOTES ─────────────────────────────────────────────────────────────
+
+function renderDashNotes(data) {
+  const el = qs('dash-notes');
+  const notes = [...(data.notes || [])].sort((a,b) => b.date.localeCompare(a.date)).slice(0, 6);
+  if (!notes.length) { el.innerHTML = '<div class="empty">Aucune note</div>'; return; }
+
+  // Mise à jour stat
+  const moy = data.periodes?.[0]?.moyenneGenerale;
+  if (moy) qs('stat-moyenne').textContent = moy;
+
+  el.innerHTML = notes.map(n => `
+    <div class="grade-row">
+      <div class="grade-subject-dot" style="background:${subjectColor(n.libelleMatiere)}"></div>
+      <div class="grade-subject">${n.libelleMatiere}</div>
+      <div class="grade-date">${formatDate(n.date)}</div>
+      <div class="grade-type">${n.typeDevoir || '—'}</div>
+      <div class="grade-val ${gradeClass(n.valeur)}">${n.valeur}/${n.noteSur}</div>
+    </div>`).join('');
+}
+
+function renderNotes(data) {
+  const el = qs('notes-content');
+  const matieres = data.matieres || [];
+  const periode = data.periodes?.[0];
+
+  qs('notes-sub').textContent = `${periode?.libelle || 'En cours'} · Moy. ${periode?.moyenneGenerale || '—'}/20`;
+
+  let html = '';
+
+  if (periode) {
+    html += `<div class="card" style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:20px">
+      <div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:4px">${periode.libelle}</div>
+        <div class="bulletin-avg">${periode.moyenneGenerale || '—'}/20</div>
+      </div>
+      ${periode.rang ? `<div style="text-align:center"><div style="font-family:Syne,sans-serif;font-size:20px;font-weight:700">${periode.rang}ème</div><div style="font-size:11px;color:var(--text2)">sur ${periode.effectif} élèves</div></div>` : ''}
+      <div><div style="font-size:12px;color:var(--text2);margin-bottom:2px">Moy. classe</div><div style="font-family:Syne,sans-serif;font-size:20px;font-weight:700">${periode.moyenneGeneraleClasse || '—'}</div></div>
+    </div>`;
+  }
+
+  html += `<div class="avg-grid">` + matieres.map(m => {
+    const score = parseFloat(m.moyenneEleve);
+    const pct = isNaN(score) ? 0 : (score/20*100);
+    const col = subjectColor(m.libelle);
+    return `<div class="avg-item">
+      <div class="avg-subject"><div class="avg-dot" style="background:${col}"></div>${m.libelle}</div>
+      <div class="avg-score" style="color:${col}">${m.moyenneEleve || '—'}</div>
+      <div class="avg-bar"><div class="avg-bar-fill" style="width:0%;background:${col}" data-w="${pct.toFixed(1)}%"></div></div>
+    </div>`;
+  }).join('') + `</div>`;
+
+  const allNotes = [...(data.notes || [])].sort((a,b) => b.date.localeCompare(a.date));
+  html += `<div class="card"><div class="card-title">Toutes les notes</div><div class="grades-list">` +
+    allNotes.map(n => `<div class="grade-row">
+      <div class="grade-subject-dot" style="background:${subjectColor(n.libelleMatiere)}"></div>
+      <div class="grade-subject">${n.libelleMatiere}</div>
+      <div class="grade-date">${formatDate(n.date)}</div>
+      <div class="grade-type">${n.typeDevoir || '—'}</div>
+      <div class="grade-val ${gradeClass(n.valeur)}">${n.valeur}/${n.noteSur}</div>
+    </div>`).join('') + `</div></div>`;
+
+  el.innerHTML = html;
+
+  // Animate bars
+  setTimeout(() => {
+    el.querySelectorAll('.avg-bar-fill').forEach(b => { b.style.width = b.dataset.w; });
+  }, 100);
+}
+
+// ── RENDER EMPLOI ─────────────────────────────────────────────────────────────
+
+function renderDashEmploi(data) {
+  const el = qs('dash-emploi');
+  const todayStr = new Date().toISOString().split('T')[0];
+  const cours = (data.cours || []).filter(c => c.date === todayStr).sort((a,b) => a.heureDebut.localeCompare(b.heureDebut));
+
+  if (!cours.length) { el.innerHTML = '<div class="empty">Pas de cours aujourd\'hui</div>'; return; }
+
+  el.innerHTML = cours.map(c => {
+    const hd = c.heureDebut?.slice(11,16) || '';
+    const hf = c.heureFin?.slice(11,16) || '';
+    return `<div class="lesson ${c.annule ? 'lesson-cancelled' : ''}" style="border-left-color:${subjectColor(c.matiere)}">
+      <div class="lesson-time">${hd}<br>${hf}</div>
+      <div class="lesson-body">
+        <div class="lesson-subject">${c.matiere}${c.annule ? '<span class="badge-cancelled">Annulé</span>' : ''}</div>
+        <div class="lesson-meta"><span>${c.professeur || ''}</span><span class="lesson-room">${c.salle || ''}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderEmploi(data) {
+  const el = qs('emploi-content');
+  const cours = data.cours || [];
+  const days = {};
+  cours.forEach(c => {
+    if (!days[c.date]) days[c.date] = [];
+    days[c.date].push(c);
+  });
+
+  const sortedDays = Object.keys(days).sort();
+  if (!sortedDays.length) { el.innerHTML = '<div class="empty">Aucun cours cette semaine</div>'; return; }
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const activeDay = sortedDays.includes(todayStr) ? todayStr : sortedDays[0];
+
+  function renderDay(date) {
+    const dayCours = (days[date] || []).sort((a,b) => a.heureDebut.localeCompare(b.heureDebut));
+    return dayCours.map(c => {
+      const hd = c.heureDebut?.slice(11,16) || '';
+      const hf = c.heureFin?.slice(11,16) || '';
+      return `<div class="lesson ${c.annule ? 'lesson-cancelled' : ''}" style="border-left-color:${subjectColor(c.matiere)}">
+        <div class="lesson-time">${hd}<br>${hf}</div>
+        <div class="lesson-body">
+          <div class="lesson-subject">${c.matiere}${c.annule ? '<span class="badge-cancelled">Annulé</span>' : ''}</div>
+          <div class="lesson-meta"><span>${c.professeur||''}</span><span class="lesson-room">${c.salle||''}</span></div>
+        </div>
+      </div>`;
+    }).join('') || '<div class="empty">Pas de cours</div>';
+  }
+
+  const daysLabels = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  const header = `<div class="schedule-header">` + sortedDays.map(d => {
+    const dt = new Date(d + 'T12:00:00');
+    return `<div class="day-btn ${d === activeDay ? 'active' : ''}" onclick="switchDay('${d}', this)">
+      <span>${daysLabels[dt.getDay()]}</span><span>${dt.getDate()}</span>
+    </div>`;
+  }).join('') + `</div>`;
+
+  el.innerHTML = header + `<div id="day-content">${renderDay(activeDay)}</div>`;
+
+  window._emploiDays = days;
+  window._daysLabels = daysLabels;
+}
+
+window.switchDay = function(date, btn) {
+  document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const d = window._emploiDays?.[date] || [];
+  const cours = d.sort((a,b) => a.heureDebut.localeCompare(b.heureDebut));
+  qs('day-content').innerHTML = cours.map(c => {
+    const hd = c.heureDebut?.slice(11,16) || '';
+    const hf = c.heureFin?.slice(11,16) || '';
+    return `<div class="lesson ${c.annule ? 'lesson-cancelled' : ''}" style="border-left-color:${subjectColor(c.matiere)}">
+      <div class="lesson-time">${hd}<br>${hf}</div>
+      <div class="lesson-body">
+        <div class="lesson-subject">${c.matiere}${c.annule ? '<span class="badge-cancelled">Annulé</span>' : ''}</div>
+        <div class="lesson-meta"><span>${c.professeur||''}</span><span class="lesson-room">${c.salle||''}</span></div>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty">Pas de cours</div>';
+};
+
+// ── RENDER DEVOIRS ────────────────────────────────────────────────────────────
+
+function renderDashDevoirs(data) {
+  const devoirs = (data.devoirs || []).filter(d => !d.fait).slice(0,4);
+  qs('stat-devoirs').textContent = devoirs.length;
+  if (!devoirs.length) { qs('dash-devoirs').innerHTML = '<div class="empty">Aucun devoir 🎉</div>'; return; }
+  qs('dash-devoirs').innerHTML = devoirs.map(d => devoirHTML(d)).join('');
+}
+
+function renderDevoirs(data) {
+  const all = data.devoirs || [];
+  const todo = all.filter(d => !d.fait);
+  const done = all.filter(d => d.fait);
+  qs('devoirs-sub').textContent = `${todo.length} à faire · ${done.length} terminé`;
+
+  const today = new Date().toISOString().split('T')[0];
+  const urgent = todo.filter(d => d.date <= new Date(Date.now() + 86400000*2).toISOString().split('T')[0]);
+  const later = todo.filter(d => d.date > new Date(Date.now() + 86400000*2).toISOString().split('T')[0]);
+
+  let html = '';
+  if (urgent.length) {
+    html += `<div class="card" style="margin-bottom:14px"><div class="card-title" style="color:var(--orange)">⚡ Urgent</div><div class="hw-list">${urgent.map(d => devoirHTML(d, true)).join('')}</div></div>`;
+  }
+  if (later.length) {
+    html += `<div class="card" style="margin-bottom:14px"><div class="card-title">À venir</div><div class="hw-list">${later.map(d => devoirHTML(d)).join('')}</div></div>`;
+  }
+  if (done.length) {
+    html += `<div class="card"><div class="card-title">Terminés</div><div class="hw-list">${done.map(d => devoirHTML(d)).join('')}</div></div>`;
+  }
+  if (!html) html = '<div class="empty">Aucun devoir ✨</div>';
+  qs('devoirs-content').innerHTML = html;
+}
+
+function devoirHTML(d, urgent=false) {
+  const col = subjectColor(d.matiere);
+  const dueCls = urgent ? 'hw-due urgent' : 'hw-due';
+  return `<div class="hw-item" onclick="toggleHW(this)">
+    <div class="hw-check ${d.fait ? 'done' : ''}">
+      <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="hw-body">
+      <div class="hw-subject" style="color:${col}">${d.matiere}</div>
+      <div class="hw-desc">${d.contenu}</div>
+    </div>
+    <div class="${dueCls}">${formatDate(d.date)}</div>
+  </div>`;
+}
+
+window.toggleHW = function(item) {
+  const check = item.querySelector('.hw-check');
+  const isDone = check.classList.toggle('done');
+  item.querySelectorAll('.hw-subject, .hw-desc').forEach(el => {
+    el.style.textDecoration = isDone ? 'line-through' : '';
+    el.style.opacity = isDone ? '0.4' : '';
+  });
+  const due = item.querySelector('.hw-due');
+  if (due) due.style.opacity = isDone ? '0.4' : '';
+};
+
+// ── RENDER MESSAGES ───────────────────────────────────────────────────────────
+
+function renderDashMessages(data) {
+  const msgs = data.messages || [];
+  const unread = msgs.filter(m => !m.lu);
+  qs('stat-messages').textContent = unread.length;
+  if (unread.length) qs('msg-badge').style.display = 'block';
+
+  const el = qs('dash-messages');
+  el.innerHTML = msgs.slice(0,4).map(m => msgHTML(m)).join('');
+}
+
+function renderMessages(data) {
+  const msgs = data.messages || [];
+  const unread = msgs.filter(m => !m.lu).length;
+  qs('messages-sub').textContent = `${unread} message${unread>1?'s':''} non lu${unread>1?'s':''}`;
+  qs('messages-content').innerHTML = msgs.map(m => msgHTML(m, true)).join('') || '<div class="empty">Aucun message</div>';
+}
+
+const AVATAR_COLORS = ['rgba(79,110,247,0.2)|#4f6ef7','rgba(168,85,247,0.2)|#a855f7','rgba(62,207,142,0.15)|#3ecf8e','rgba(247,169,79,0.15)|#f7a94f','rgba(247,95,95,0.15)|#f75f5f'];
+function msgHTML(m, large=false) {
+  const idx = m.de.length % AVATAR_COLORS.length;
+  const [bg, col] = AVATAR_COLORS[idx].split('|');
+  const initials = m.de.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+  const sz = large ? 'width:40px;height:40px;font-size:14px' : '';
+  return `<div class="msg-item ${m.lu ? '' : 'unread'}">
+    <div class="msg-avatar" style="background:${bg};color:${col};${sz}">${initials}</div>
+    <div class="msg-body">
+      <div class="msg-from">${m.de}</div>
+      <div class="msg-preview">${m.sujet}</div>
+    </div>
+    <div class="msg-date">${formatDate(m.date)}</div>
+  </div>`;
+}
+
+// ── RENDER ABSENCES ───────────────────────────────────────────────────────────
+
+function renderAbsences(data) {
+  const absences = data.absences || [];
+  qs('stat-absences').textContent = absences.length;
+  qs('absences-sub').textContent = `${absences.length} absence${absences.length>1?'s':''}`;
+
+  const justified = absences.filter(a => a.justifie).length;
+  const pending = absences.filter(a => !a.justifie).length;
+
+  let html = `<div class="grid-4" style="margin-bottom:16px">
+    <div class="stat-card orange"><div class="stat-icon orange"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div><div class="stat-value">${absences.length}</div><div class="stat-label">Total</div></div>
+    <div class="stat-card green"><div class="stat-icon green"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/></svg></div><div class="stat-value">${justified}</div><div class="stat-label">Justifiées</div></div>
+    <div class="stat-card red"><div class="stat-icon red"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></div><div class="stat-value">${pending}</div><div class="stat-label">En attente</div></div>
+    <div class="stat-card blue"><div class="stat-icon blue"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div><div class="stat-value">${absences.filter(a => a.type==='Retard').length}</div><div class="stat-label">Retards</div></div>
+  </div>`;
+
+  if (absences.length) {
+    html += `<div class="card"><div class="card-title">Historique</div>` +
+      absences.sort((a,b) => b.date.localeCompare(a.date)).map(a => `
+        <div class="absence-item" style="border-left-color:${a.justifie ? 'var(--green)' : 'var(--orange)'}">
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:500">${a.type} – ${formatDate(a.date)}</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px">${a.heureDebut||''} → ${a.heureFin||''}${a.matiere ? ' · ' + a.matiere : ''}</div>
+          </div>
+          <div class="absence-status ${a.justifie ? 'status-justified' : 'status-pending'}">${a.justifie ? 'Justifiée' : 'En attente'}</div>
+        </div>`).join('') + `</div>`;
+  } else {
+    html += '<div class="empty">Aucune absence 🎉</div>';
+  }
+
+  qs('absences-content').innerHTML = html;
+}
+
+// ── NAVIGATION ───────────────────────────────────────────────────────────────
+
+function switchPage(id, navEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item[data-page]').forEach(n => n.classList.remove('active'));
+  if (navEl) navEl.classList.add('active');
+}
+</script>
+</body>
+</html>
